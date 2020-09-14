@@ -1,0 +1,23 @@
+{
+  "name": "draganddroptypescriptapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "lite-server",
+    "watch": "tsc -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thejivecat/Drag-And-Drop-Typescript.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/thejivecat/Drag-And-Drop-Typescript/issues"
+  },
+  "homepage": "https://github.com/thejivecat/Drag-And-Drop-Typescript#readme",
+  "devDependencies": {
+    "lite-server": "^2.5.4"
+  }
+}
