@@ -1,3 +1,17 @@
+// autobind decorator
+const Autobind = (_target: any, _methodName: string, descriptor: PropertyDescriptor) => {
+  const originalMethod = descriptor.value;
+  const newDescriptor: PropertyDescriptor = {
+    configurable: true,
+    get() {
+      const boundFn = originalMethod.bind(this);
+      return boundFn;
+    }
+  }
+  return newDescriptor;
+}
+
+// ProjectInput class
 class ProjectInput {
   templateElement: HTMLTemplateElement;
   hostElement: HTMLDivElement;
@@ -21,12 +35,35 @@ class ProjectInput {
     this.configure();
     this.attach();
   }
+  private gatherUserInput(): [string, string, number] | void {
+    const enteredTitle = this.titleInput.value;
+    const enteredDescription = this.descriptionInput.value;
+    const enteredPeople = this.peopleInput.value;
+
+    if (enteredTitle.trim().length === 0 || enteredDescription.trim().length === 0 || enteredPeople.trim().length ===0) {
+      alert('Invalid input!');
+      return;
+    } else {
+      return [enteredTitle, enteredDescription, +enteredPeople]; //enteredPeople needs to be a number
+    }
+  }
+  private clearInputs() {
+    this.titleInput.value = '';
+    this.descriptionInput.value = '';
+    this.peopleInput.value = '';
+  }
+  @Autobind
   private submitHandler(event: Event) {
     event.preventDefault();
-    console.log(this.titleInput.value);
+    const userInput = this.gatherUserInput();
+    if (Array.isArray(userInput)) {
+      const [title, description, people] = userInput;
+      console.log(title, description, people);
+      this.clearInputs();
+    }
   }
   private configure() {
-    this.element.addEventListener('submit', this.submitHandler.bind(this)); //can be done with autobind decorator
+    this.element.addEventListener('submit', this.submitHandler);
   }
   private attach() {
     this.hostElement.insertAdjacentElement('afterbegin', this.element);
