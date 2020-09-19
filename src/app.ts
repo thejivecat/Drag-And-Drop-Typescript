@@ -1,3 +1,57 @@
+// Project Type
+enum ProjectStatus {
+  Active,
+  Finished
+}
+class Project {
+  constructor(
+    public id: string, 
+    public title: string, 
+    public description: string, 
+    public people: number, 
+    public status: ProjectStatus
+    ) {}
+}
+
+
+// Project State Management
+type Listener = (items: Project[]) => void;
+
+class ProjectState {
+  private listeners: Listener[] = [];
+  private projects: any[] = [];
+  private static instance: ProjectState;
+
+  private constructor() {
+
+  }
+  static getInstance() {
+    if (this.instance) {
+      return this.instance;
+    }
+    this.instance = new ProjectState();
+    return this.instance;
+  }
+  addListener(listenerFn: Listener) {
+    this.listeners.push(listenerFn);
+  }
+  addProject(title: string, description: string, people: number) {
+    const newProject = new Project(
+      Math.random().toString(),
+      title,
+      description,
+      people,
+      ProjectStatus.Active
+    )
+    this.projects.push(newProject);
+    for (const listenerFn of this.listeners) {
+      listenerFn(this.projects.slice());
+    }
+  }
+}
+
+const projectState = ProjectState.getInstance();
+
 //Validation
 
 interface ValidObject {
@@ -40,6 +94,51 @@ const Autobind = (_target: any, _methodName: string, descriptor: PropertyDescrip
   return newDescriptor;
 }
 
+// ProjectList Class
+
+class ProjectList {
+  templateElement: HTMLTemplateElement;
+  hostElement: HTMLDivElement;
+  element: HTMLElement;
+  assignedProjects: Project[];
+
+  constructor(private type: 'active' | 'finished') {
+    this.templateElement = document.getElementById('project-list')! as HTMLTemplateElement; //access to the template that holds content to be rendered
+    this.hostElement = document.getElementById('app')! as HTMLDivElement; // holds a reference to the element where I want to render template content
+    this.assignedProjects = [];
+
+    const importedHTMLContent = document.importNode(this.templateElement.content, true) //content is prop on html elements
+    this.element = importedHTMLContent.firstElementChild as HTMLElement; //returns first child node of project-input as an element node 
+    this.element.id = `${this.type}-projects`
+
+    projectState.addListener((projects: Project[]) => {
+      this.assignedProjects = projects;
+      this.renderProjects();
+    })
+    this.attach();
+    this.renderContent();
+  }
+
+  private renderProjects() {
+    const listElement = document.getElementById(`${this.type}-projects-list`)!;
+    for (const projItem of this.assignedProjects) {
+      const listItem = document.createElement('li');
+      listItem.textContent = projItem.title;
+      listElement.appendChild(listItem);
+    }
+  }
+  private renderContent() {
+    const listId = `${this.type}-projects-list`;
+    this.element.querySelector('ul')!.id = listId;
+    this.element.querySelector('h2')!.textContent = this.type.toUpperCase() + ' PROJECTS';
+
+
+  }
+  private attach() {
+    this.hostElement.insertAdjacentElement('beforeend', this.element);
+
+  }
+}
 // ProjectInput class
 class ProjectInput {
   templateElement: HTMLTemplateElement;
@@ -101,7 +200,7 @@ class ProjectInput {
     const userInput = this.gatherUserInput();
     if (Array.isArray(userInput)) {
       const [title, description, people] = userInput;
-      console.log(title, description, people);
+      projectState.addProject(title, description, people);
       this.clearInputs();
     }
   }
@@ -114,3 +213,5 @@ class ProjectInput {
 }
 
 const projInput = new ProjectInput();
+const activeProjList = new ProjectList('active');
+const finishedProjList = new ProjectList('active');
